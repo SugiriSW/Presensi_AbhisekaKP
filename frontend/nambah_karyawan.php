@@ -13,16 +13,20 @@ $id_user = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validasi dan sanitasi input
-    $id_user = trim($_POST['id_user'] ?? ''); // Tambahan input ID User
+    $id_user = trim($_POST['id_user'] ?? ''); 
     $username = trim($_POST['username'] ?? '');
     $password = trim($_POST['password'] ?? '');
     $nama_lengkap = trim($_POST['nama_lengkap'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $peran = $_POST['peran'] ?? 'karyawan';
+    $uid = trim($_POST['uid'] ?? 'uid'); 
+    $pin = trim($_POST['pin'] ?? 'verif');
+
     
     try {
         // Validasi input
-        if (empty($id_user) || empty($username) || empty($password) || empty($nama_lengkap) || empty($email)) {
+        if (empty($id_user) || empty($username) || empty($password) || 
+            empty($nama_lengkap) || empty($email) || empty($uid)|| empty($pin)) {
             throw new Exception('Semua field wajib diisi!');
         }
         
@@ -79,6 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             $foto_path = "uploads/foto_profil/" . $new_filename;
+            $check_uid = $pdo->prepare("SELECT id_user FROM pengguna WHERE uid = ?");
+            $check_uid->execute([$uid]);
+            
+            if ($check_uid->rowCount() > 0) {
+                throw new Exception('UID kartu sudah terdaftar!');
+            }
         }
         
         // Insert data ke database
@@ -92,7 +102,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nama_lengkap,
             $email,
             $peran,
-            $foto_path
+            $foto_path,
+            $uid,
+            $pin
         ]);
         
         $success = 'Karyawan berhasil ditambahkan!';
@@ -114,6 +126,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
+    <script>
+        // Fungsi untuk mengambil UID dari server NFC
+        function getUID() {
+            fetch("http://127.0.0.1:5000/get_uid")
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById("uid").value = data.uID;
+                    // Beri notifikasi sukses
+                    showAlert('UID berhasil dibaca: ' + data.uID, 'success');
+                })
+                .catch(error => {
+                    console.error("Gagal ambil UID:", error);
+                    showAlert('Gagal membaca UID. Pastikan server NFC berjalan.', 'danger');
+                });
+        }
+
+        // Fungsi untuk menampilkan alert
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Tempatkan alert di atas form
+            const form = document.querySelector('form');
+            form.parentNode.insertBefore(alertDiv, form);
+            
+            // Hapus alert setelah 5 detik
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Panggil getUID saat halaman dimuat
+        window.addEventListener('DOMContentLoaded', (event) => {
+            getUID();
+            
+            // Tambahkan tombol untuk membaca ulang UID
+            const uidField = document.getElementById('uid');
+            const refreshButton = document.createElement('button');
+            refreshButton.type = 'button';
+            refreshButton.className = 'btn btn-sm btn-outline-secondary mt-2';
+            refreshButton.innerHTML = '<i class="fas fa-sync-alt"></i> Baca Ulang UID';
+            refreshButton.onclick = getUID;
+            uidField.parentNode.appendChild(refreshButton);
+        });
+    </script>
 </head>
 <body>
     <div class="dashboard-fluid">
@@ -163,7 +230,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <?php endif; ?>
 
                                 <form action="nambah_karyawan.php" method="POST" enctype="multipart/form-data">
-                                    <!-- Tambahkan field ID User di sini -->
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -196,7 +262,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                        value="<?php echo htmlspecialchars($_POST['nama_lengkap'] ?? ''); ?>" required>
                                             </div>
                                         </div>
-                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="email">Email</label>
@@ -204,6 +272,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                        value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" required>
                                             </div>
                                         </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="uid">UID Kartu NFC</label>
+                                                <input type="text" class="form-control" id="uid" name="uid" readonly>
+                                                <small class="text-muted">Tempelkan kartu NFC untuk membaca UID</small>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <div class="row">
                                         <div class="col-md-6">
@@ -216,6 +292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                 </select>
                                             </div>
                                         </div>
+                                            <div class="col-md-6">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="foto">Foto Profil</label>
@@ -223,7 +300,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                 <small class="text-muted">Format: JPG, JPEG, PNG (Maks. 2MB)</small>
                                             </div>
                                         </div>
-
+                                        <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="pin">PIN (4 digit angka)</label>
+                                                <input type="password" class="form-control" id="pin" name="pin" 
+                                                    maxlength="4" pattern="\d{4}" title="Harus 4 digit angka">
+                                                <small class="text-muted">Masukkan 4 digit angka untuk PIN verifikasi</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="form-group text-center mt-4">
                                         <button type="submit" class="btn btn-primary btn-lg">
                                             <i class="fas fa-save"></i> Simpan Data

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 04, 2025 at 05:28 AM
+-- Generation Time: Aug 05, 2025 at 06:30 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -224,6 +224,7 @@ CREATE TABLE `pengguna` (
   `nama_lengkap` varchar(60) NOT NULL,
   `email` varchar(50) NOT NULL,
   `peran` enum('superadmin','admin','karyawan') NOT NULL DEFAULT 'karyawan',
+  `uid` varchar(15) DEFAULT NULL,
   `foto_path` varchar(255) DEFAULT NULL,
   `data_wajah` text DEFAULT NULL COMMENT 'Data wajah untuk face recognition',
   `dibuat_pada` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -236,11 +237,11 @@ CREATE TABLE `pengguna` (
 -- Dumping data for table `pengguna`
 --
 
-INSERT INTO `pengguna` (`id_user`, `username`, `password`, `nama_lengkap`, `email`, `peran`, `foto_path`, `data_wajah`, `dibuat_pada`, `diperbarui_pada`, `status`, `verif`) VALUES
-('BE00001', 'Kasmal Ras', '$2y$10$ogqH5n6gggNvhvI2FtdXiO8xXhtUQyzYJ6kZUvecs1UHDXXE6RJvW', 'Kasmal Rasis', 'Kas@gmail.com', 'karyawan', 'uploads/foto_profil/profile_687f0e47cf26d1.35721437.jpg', NULL, '2025-07-22 04:06:31', '2025-07-29 02:38:43', 'aktif', 2580),
-('DR00001', 'Suge', '$2y$10$jD1dTC1dENOrkHNgxXnF/eQHs/oC/gqkNQHiEkSFMRXsGygkwPANW', 'Sugiri Satrio Wicaksono', 'sugirisatriowi@gmail.com', 'superadmin', 'uploads/foto_profil/profile_687dee4fa35bf0.72987060.jpg', NULL, '2025-07-21 07:37:51', '2025-07-21 07:37:51', 'aktif', 0),
-('FR00001', 'SugiriS', '$2y$10$ZY/RXuxOayd.jG53ngmCL.xGpDeAGyx4QE8r3rgzwjosYh3YYLybG', 'Sugiri Satrio Wicaksono', 'Sugey@gmail.com', 'karyawan', '../uploads/profiles/profile_FR00001_687deed171df3.jpg', NULL, '2025-07-21 07:23:53', '2025-07-21 07:40:01', 'aktif', 0),
-('JR00002', 'Wika', '$2y$10$nCTsF62vCxWPtslJKrlj4uyfs6xh4Ph9lEuaZGr.FoNdbiADr84gi', 'Wika Aditya', 'Sugiriakun11@gmail.com', 'admin', '../uploads/profiles/profile_JR00002_687dee0aa73be.png', NULL, '2025-07-21 07:35:53', '2025-07-21 07:36:42', 'aktif', 0);
+INSERT INTO `pengguna` (`id_user`, `username`, `password`, `nama_lengkap`, `email`, `peran`, `uid`, `foto_path`, `data_wajah`, `dibuat_pada`, `diperbarui_pada`, `status`, `verif`) VALUES
+('BE00001', 'Kasmal Ras', '$2y$10$ogqH5n6gggNvhvI2FtdXiO8xXhtUQyzYJ6kZUvecs1UHDXXE6RJvW', 'Kasmal Rasis', 'Kas@gmail.com', 'karyawan', NULL, 'uploads/foto_profil/profile_687f0e47cf26d1.35721437.jpg', NULL, '2025-07-22 04:06:31', '2025-07-29 02:38:43', 'aktif', 2580),
+('DR00001', 'Suge', '$2y$10$jD1dTC1dENOrkHNgxXnF/eQHs/oC/gqkNQHiEkSFMRXsGygkwPANW', 'Sugiri Satrio Wicaksono', 'sugirisatriowi@gmail.com', 'superadmin', NULL, 'uploads/foto_profil/profile_687dee4fa35bf0.72987060.jpg', NULL, '2025-07-21 07:37:51', '2025-07-21 07:37:51', 'aktif', 0),
+('FR00001', 'SugiriS', '$2y$10$ZY/RXuxOayd.jG53ngmCL.xGpDeAGyx4QE8r3rgzwjosYh3YYLybG', 'Sugiri Satrio Wicaksono', 'Sugey@gmail.com', 'karyawan', NULL, '../uploads/profiles/profile_FR00001_687deed171df3.jpg', NULL, '2025-07-21 07:23:53', '2025-07-21 07:40:01', 'aktif', 0),
+('JR00002', 'Wika', '$2y$10$nCTsF62vCxWPtslJKrlj4uyfs6xh4Ph9lEuaZGr.FoNdbiADr84gi', 'Wika Aditya', 'Sugiriakun11@gmail.com', 'admin', NULL, '../uploads/profiles/profile_JR00002_687dee0aa73be.png', NULL, '2025-07-21 07:35:53', '2025-07-21 07:36:42', 'aktif', 0);
 
 -- --------------------------------------------------------
 
@@ -312,7 +313,8 @@ ALTER TABLE `log_aktivitas`
 ALTER TABLE `pengguna`
   ADD PRIMARY KEY (`id_user`),
   ADD UNIQUE KEY `username` (`username`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `uid` (`uid`);
 
 --
 -- Indexes for table `presensi`

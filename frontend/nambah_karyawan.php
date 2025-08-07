@@ -1,15 +1,26 @@
 <?php
 session_start();
 
-// Load config dengan error handling
+// Load config with error handling
 require_once __DIR__ . '/config.php';
+
+// Check if user is logged in and has superadmin role
+if (!isset($_SESSION['id_user']) || $_SESSION['peran'] !== 'superadmin') {
+    header('Location: login.php');
+    exit();
+}
+
+$peran = $_SESSION['peran'];
+$user_id = $_SESSION['id_user'];
+
+// Get user data
+$stmt = $pdo->prepare("SELECT * FROM pengguna WHERE id_user = ?");
+$stmt->execute([$user_id]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+$foto_path = !empty($user['foto_path']) ? $user['foto_path'] : '../images/default-profile.jpg';
 
 $error = '';
 $success = '';
-
-// Hapus bagian yang mengambil data user dari session karena belum login
-$peran = 'guest'; // Set default role untuk tamu
-$id_user = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validasi dan sanitasi input
@@ -19,19 +30,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama_lengkap = trim($_POST['nama_lengkap'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $peran = $_POST['peran'] ?? 'karyawan';
-    $uid = trim($_POST['uid'] ?? 'uid'); 
-    $pin = trim($_POST['pin'] ?? 'verif');
-
+    $uid = trim($_POST['uid'] ?? ''); 
+    $pin = trim($_POST['pin'] ?? '');
     
     try {
         // Validasi input
         if (empty($id_user) || empty($username) || empty($password) || 
-            empty($nama_lengkap) || empty($email) || empty($uid)|| empty($pin)) {
+            empty($nama_lengkap) || empty($email) || empty($uid) || empty($pin)) {
             throw new Exception('Semua field wajib diisi!');
         }
         
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new Exception('Format email tidak valid!');
+        }
+        
+        if (strlen($pin) !== 4 || !ctype_digit($pin)) {
+            throw new Exception('PIN harus 4 digit angka!');
         }
         
         // Cek apakah ID User sudah ada
@@ -48,6 +62,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($check_username->rowCount() > 0) {
             throw new Exception('Username sudah digunakan!');
+        }
+        
+        // Cek apakah UID sudah ada
+        $check_uid = $pdo->prepare("SELECT id_user FROM pengguna WHERE uid = ?");
+        $check_uid->execute([$uid]);
+        
+        if ($check_uid->rowCount() > 0) {
+            throw new Exception('UID kartu sudah terdaftar!');
         }
         
         // Hash password
@@ -83,17 +105,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             $foto_path = "uploads/foto_profil/" . $new_filename;
-            $check_uid = $pdo->prepare("SELECT id_user FROM pengguna WHERE uid = ?");
-            $check_uid->execute([$uid]);
-            
-            if ($check_uid->rowCount() > 0) {
-                throw new Exception('UID kartu sudah terdaftar!');
-            }
         }
         
         // Insert data ke database
-        $stmt = $pdo->prepare("INSERT INTO pengguna (id_user, username, password, nama_lengkap, email, peran, foto_path) 
-                              VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO pengguna (id_user, username, password, nama_lengkap, email, peran, foto_path, uid, pin) 
+                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         
         $stmt->execute([
             $id_user,
@@ -184,21 +200,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="dashboard-fluid">
-        <!-- Sidebar untuk tamu -->
+        <!-- Sidebar -->
         <div class="col-md-3 col-lg-2 sidebar">
             <div class="sidebar-header">
                 <img src="../images/Abhiseka.png" alt="Logo Perusahaan" class="heading-image">
             </div>
             
             <nav class="sidebar-nav">
-                <a href="login.php" class="nav-link active">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span>Login</span>
+                <a href="dashboard.php" class="nav-link active">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
                 </a>
                 
-                <a href="register.php" class="nav-link">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Register</span>
+                <?php if ($peran == 'karyawan'): ?>
+                    <a href="presensi.php" class="nav-link">
+                        <i class="fas fa-fingerprint"></i>
+                        <span>Riwayat Presensi</span>
+                    </a>
+                    <a href="izin.php" class="nav-link">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Ajukan Izin</span>
+                    </a>
+                    <a href="dinas_luar.php" class="nav-link">
+                        <i class="fas fa-briefcase"></i>
+                        <span>Ajukan Dinas Luar</span>
+                    </a>
+                <?php endif; ?>
+                
+                <?php if ($peran == 'admin' || $peran == 'superadmin'): ?>
+                    <a href="daftar_presensi.php" class="nav-link">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Daftar Presensi</span>
+                    </a>
+                    <a href="kelola_izin.php" class="nav-link">
+                        <i class="fas fa-tasks"></i>
+                        <span>Kelola Izin</span>
+                    </a>
+                    <a href="kelola_dinas.php" class="nav-link">
+                        <i class="fas fa-briefcase"></i>
+                        <span>Kelola Dinas</span>
+                    </a>                     
+                <?php endif; ?>
+                
+                <?php if ($peran == 'superadmin'): ?>
+                    <a href="kelola_karyawan.php" class="nav-link">
+                        <i class="fas fa-users-cog"></i>
+                        <span>Kelola Karyawan</span>
+                    </a>
+                    <a href="kelola_event.php" class="nav-link">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Kelola Event</span>
+                    </a>
+                <?php endif; ?>
+                
+                <a href="profil.php" class="nav-link">
+                    <i class="fas fa-user"></i>
+                    <span>Profil</span>
+                </a>
+                
+                <a href="logout.php" class="nav-link logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Keluar</span>
                 </a>
             </nav>
         </div>
@@ -342,6 +404,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 reader.readAsDataURL(file);
             }
         });
+        // Ganti URL dengan dinamis
+        function getUID() {
+            const serverUrl = window.location.origin.replace(/:\d+$/, ':5000');
+            
+            fetch(`${serverUrl}/get_uid`)
+                .then(response => {
+                    if (!response.ok) throw new Error('HTTP error');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success' && data.uID) {
+                        document.getElementById("uid").value = data.uID;
+                        showAlert(`UID berhasil dibaca: ${data.uID}`, 'success');
+                    } else {
+                        throw new Error('Data UID tidak valid');
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    showAlert('Gagal membaca UID. Cek koneksi atau server NFC.', 'danger');
+                    // Fallback: Input manual
+                    document.getElementById("uid").readOnly = false;
+                });
+        }
     </script>
 </body>
 </html>

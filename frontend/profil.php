@@ -152,7 +152,6 @@ $foto_path = !empty($user['foto_path']) ? $user['foto_path'] : '../images/defaul
         <div class="main-content col-md-9 ms-sm-auto col-lg-10 px-md-4 py-3">
             <!-- Navbar -->
             <nav class="navbar navbar-expand-lg navbar-light bg-light rounded shadow-sm mb-4">
-                <div class="navbar-title">Profil Pengguna</div>
                 <div class="navbar-user">
                     <img src="<?= $foto_path ?>" alt="User" class="rounded-circle me-2" width="40" height="40">
                     <span><?= htmlspecialchars($user['nama_lengkap']) ?></span>

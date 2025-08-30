@@ -49,6 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_karyawan'])) {
     $email = $_POST['email'];
     $peran = $_POST['peran'];
     $status = $_POST['status'];
+    $verif = $_POST['verif'];
+    
+    // Validasi kode verifikasi
+    if (strlen($verif) != 4 || !is_numeric($verif)) {
+        $error = 'Kode verifikasi harus 4 digit angka';
+    }
     
     // Handle password change (jika diisi)
     $password_changed = false;
@@ -90,15 +96,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_karyawan'])) {
             if ($password_changed) {
                 $stmt = $pdo->prepare("UPDATE pengguna SET 
                     username = ?, password = ?, nama_lengkap = ?, email = ?, 
-                    peran = ?, status = ?, foto_path = ? WHERE id_user = ?");
+                    peran = ?, status = ?, foto_path = ?, verif = ? WHERE id_user = ?");
                 $stmt->execute([$username, $password, $nama_lengkap, $email, 
-                    $peran, $status, $new_foto_path, $id_karyawan]);
+                    $peran, $status, $new_foto_path, $verif, $id_karyawan]);
             } else {
                 $stmt = $pdo->prepare("UPDATE pengguna SET 
                     username = ?, nama_lengkap = ?, email = ?, 
-                    peran = ?, status = ?, foto_path = ? WHERE id_user = ?");
+                    peran = ?, status = ?, foto_path = ?, verif = ? WHERE id_user = ?");
                 $stmt->execute([$username, $nama_lengkap, $email, 
-                    $peran, $status, $new_foto_path, $id_karyawan]);
+                    $peran, $status, $new_foto_path, $verif, $id_karyawan]);
             }
             
             // Catat log
@@ -115,6 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_karyawan'])) {
             $karyawan['peran'] = $peran;
             $karyawan['status'] = $status;
             $karyawan['foto_path'] = $new_foto_path;
+            $karyawan['verif'] = $verif;
             
         } catch (PDOException $e) {
             $error = "Gagal memperbarui data karyawan: " . $e->getMessage();
@@ -208,7 +215,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_karyawan'])) {
         <div class="main-content">
             <!-- Navbar -->
             <nav class="navbar navbar-expand-lg navbar-light bg-light rounded shadow-sm mb-4">
-                <div class="navbar-title">Edit Karyawan</div>
                 <div class="navbar-user">
                     <img src="<?= $foto_path ?>" alt="User" class="rounded-circle me-2" width="40" height="40">
                     <span><?php echo $_SESSION['nama_lengkap']; ?></span>
@@ -289,16 +295,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_karyawan'])) {
                                         </div>
                                         <div class="col-md-4">
                                             <div class="form-group">
+                                                <label for="verif">Kode Verifikasi (OTP)</label>
+                                                <input type="text" class="form-control" id="verif" name="verif" 
+                                                       value="<?php echo htmlspecialchars($karyawan['verif']); ?>" 
+                                                       pattern="[0-9]{4}" maxlength="4" required>
+                                                <small class="text-muted">4 digit angka untuk reset password</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
                                                 <label for="foto">Foto Profil</label>
                                                 <input type="file" class="form-control" id="foto" name="foto" accept="image/jpeg, image/png">
                                                 <small class="text-muted">Biarkan kosong jika tidak ingin mengubah foto</small>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <!-- Tampilkan foto saat ini -->
-                                    <div class="row mb-3">
-                                        <div class="col-md-12">
+                                        <div class="col-md-6">
                                             <label>Foto Saat Ini:</label><br>
                                             <img src="<?= $karyawan['foto_path'] ?>" alt="Foto Profil" class="img-thumbnail" style="max-width: 150px;">
                                         </div>

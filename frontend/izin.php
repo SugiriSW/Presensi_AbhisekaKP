@@ -245,7 +245,6 @@ $foto_path = !empty($user['foto_path']) ? $user['foto_path'] : '../images/defaul
 
             <!-- Navbar -->
             <nav class="navbar navbar-expand-lg navbar-light bg-light rounded shadow-sm mb-4">
-                <div class="navbar-title">Pengajuan Izin</div>
                 <div class="navbar-user">
                     <img src="<?= $foto_path ?>" alt="User" class="rounded-circle me-2" width="40" height="40">                    <span><?php echo $_SESSION['nama_lengkap']; ?></span>
                 </div>

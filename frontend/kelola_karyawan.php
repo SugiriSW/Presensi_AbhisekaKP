@@ -179,17 +179,17 @@ $daftar_karyawan = $stmt->fetchAll();
     <script>
         // Fungsi untuk mengambil UID dari server NFC
         function getUID() {
-            const serverUrl = window.location.origin.replace(/:\d+$/, ':5000');
+            const serverUrl = "http://localhost:5001";
             
-            fetch(`${serverUrl}/get_uid`)
+            fetch(`${serverUrl}/api/last-uid`)
                 .then(response => {
                     if (!response.ok) throw new Error('HTTP error');
                     return response.json();
                 })
                 .then(data => {
-                    if (data.status === 'success' && data.uID) {
-                        document.getElementById("uid").value = data.uID;
-                        showAlert(`UID berhasil dibaca: ${data.uID}`, 'success');
+                    if (data.uid) {
+                        document.getElementById("uid").value = data.uid;
+                        showAlert(`UID berhasil dibaca: ${data.uid}`, 'success');
                     } else {
                         throw new Error('Data UID tidak valid');
                     }

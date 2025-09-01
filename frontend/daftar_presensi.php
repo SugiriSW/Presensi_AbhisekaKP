@@ -64,6 +64,9 @@ $stmt_user = $pdo->prepare("SELECT * FROM pengguna WHERE id_user = ?");
 $stmt_user->execute([$id_user]);
 $user = $stmt_user->fetch(PDO::FETCH_ASSOC);
 $foto_path = !empty($user['foto_path']) ? $user['foto_path'] : '../images/default-profile.jpg';
+
+// Set judul halaman
+$page_title = "Daftar Presensi";
 ?>
 
 <!DOCTYPE html>
@@ -73,10 +76,9 @@ $foto_path = !empty($user['foto_path']) ? $user['foto_path'] : '../images/defaul
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar Presensi - Sistem Presensi</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet"> -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
-        <style>
+    <style>
         /* Root Variables */
         :root {
             --primary-color: #a6cd29;
@@ -202,70 +204,202 @@ $foto_path = !empty($user['foto_path']) ? $user['foto_path'] : '../images/defaul
         .avatar-container:hover {
             transform: scale(1.03);
         }
+        
+        /* Sidebar dalam keadaan kecil */
+        .sidebar.collapsed {
+            width: 70px !important;
+            min-width: 70px;
+        }
+
+        .sidebar.collapsed .sidebar-header {
+            padding: 15px 5px;
+            justify-content: center;
+            position: relative;
+        }
+
+        .sidebar.collapsed .heading-image {
+            width: 40px;
+            height: 40px;
+        }
+
+        .sidebar.collapsed .sidebar-nav span {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            padding: 12px 5px;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+            font-size: 1.2rem;
+        }
+
+        .sidebar.collapsed .sidebar-toggle {
+            right: -15px;
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        /* Tombol toggle sidebar */
+        .sidebar-toggle {
+            position: absolute;
+            top: 50%;
+            right: -15px;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Animasi transisi */
+        .sidebar {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .main-content {
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Tooltip untuk menu yang disembunyikan */
+        .nav-link {
+            position: relative;
+        }
+
+        .tooltip-text {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 1000;
+            margin-left: 10px;
+            font-size: 0.9rem;
+        }
+
+        .sidebar.collapsed .nav-link:hover .tooltip-text {
+            display: block;
+        }
+        
+        /* Perbaikan layout untuk sidebar yang mengecil */
+        .dashboard-fluid {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            min-width: 250px;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 0;
+        }
     </style>
 </head>
 <body>
     <div class="dashboard-fluid">
         <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 sidebar">
+        <div class="sidebar">
             <div class="sidebar-header">
                 <img src="../images/Abhiseka.png" alt="Logo Perusahaan" class="heading-image">
+                <!-- Tombol toggle sidebar -->
+                <button id="sidebarToggle" class="sidebar-toggle">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
             </div>
             
             <nav class="sidebar-nav">
-                <a href="dashboard.php" class="nav-link">
+                <a href="dashboard.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : ''; ?>">
                     <i class="fas fa-home"></i>
                     <span>Dashboard</span>
+                    <div class="tooltip-text">Dashboard</div>
                 </a>
                 
                 <?php if ($peran == 'karyawan'): ?>
-                    <a href="presensi.php" class="nav-link">
+                    <a href="presensi.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'presensi.php' ? 'active' : ''; ?>">
                         <i class="fas fa-fingerprint"></i>
                         <span>Riwayat Presensi</span>
+                        <div class="tooltip-text">Riwayat Presensi</div>
                     </a>
-                    <a href="izin.php" class="nav-link">
+                    <a href="izin.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'izin.php' ? 'active' : ''; ?>">
                         <i class="fas fa-calendar-check"></i>
                         <span>Ajukan Izin</span>
+                        <div class="tooltip-text">Ajukan Izin</div>
+                    </a>
+                    <a href="dinas_luar.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'dinas_luar.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-briefcase"></i>
+                        <span>Ajukan Dinas Luar</span>
+                        <div class="tooltip-text">Ajukan Dinas Luar</div>
                     </a>
                 <?php endif; ?>
                 
                 <?php if ($peran == 'admin' || $peran == 'superadmin'): ?>
-                    <a href="daftar_presensi.php" class="nav-link active">
+                    <a href="daftar_presensi.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'daftar_presensi.php' ? 'active' : ''; ?>">
                         <i class="fas fa-clipboard-list"></i>
                         <span>Daftar Presensi</span>
+                        <div class="tooltip-text">Daftar Presensi</div>
                     </a>
-                    <a href="kelola_izin.php" class="nav-link">
+                    <a href="kelola_izin.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'kelola_izin.php' ? 'active' : ''; ?>">
                         <i class="fas fa-tasks"></i>
                         <span>Kelola Izin</span>
+                        <div class="tooltip-text">Kelola Izin</div>
                     </a>
-                    <a href="kelola_dinas.php" class="nav-link">
+                    <a href="kelola_dinas.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'kelola_dinas.php' ? 'active' : ''; ?>">
                         <i class="fas fa-briefcase"></i>
                         <span>Kelola Dinas</span>
-                    </a>                                          
+                        <div class="tooltip-text">Kelola Dinas</div>
+                    </a>                     
                 <?php endif; ?>
                 
                 <?php if ($peran == 'superadmin'): ?>
-                    <a href="kelola_karyawan.php" class="nav-link">
+                    <a href="kelola_karyawan.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'kelola_karyawan.php' ? 'active' : ''; ?>">
                         <i class="fas fa-users-cog"></i>
                         <span>Kelola Karyawan</span>
+                        <div class="tooltip-text">Kelola Karyawan</div>
                     </a>
-                    <a href="kelola_event.php" class="nav-link">
+                    <a href="kelola_event.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'kelola_event.php' ? 'active' : ''; ?>">
                         <i class="fas fa-calendar-alt"></i>
                         <span>Kelola Event</span>
+                        <div class="tooltip-text">Kelola Event</div>
                     </a>
                 <?php endif; ?>
                 
-                <a href="profil.php" class="nav-link">
+                <a href="profil.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'profil.php' ? 'active' : ''; ?>">
                     <i class="fas fa-user"></i>
                     <span>Profil</span>
+                    <div class="tooltip-text">Profil</div>
                 </a>
                 
                 <a href="logout.php" class="nav-link logout-btn">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Keluar</span>
+                    <div class="tooltip-text">Keluar</div>
                 </a>
             </nav>
         </div>
+        
         <!-- Main Content -->
         <div class="main-content">
             <!-- Navbar -->
@@ -275,214 +409,250 @@ $foto_path = !empty($user['foto_path']) ? $user['foto_path'] : '../images/defaul
                     <span><?php echo $_SESSION['nama_lengkap']; ?></span>
                 </div>
             </nav>
-<div class="kelola-izin-container">
-    <!-- Search and Filter Section -->
-    <div class="card mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Filter Data Presensi</h5>
-        </div>
-        <div class="card-body">
-            <form method="GET" class="row g-3">
-                <!-- ID Karyawan Dropdown -->
-                <div class="col-md-3">
-                    <label for="filter_id" class="form-label">ID Karyawan</label>
-                    <select name="filter_id" id="filter_id" class="form-select">
-                        <option value="">Semua Karyawan</option>
-                        <?php foreach ($nama_options as $option): ?>
-                            <option value="<?= htmlspecialchars($option['id_user']) ?>" <?= $filter_id == $option['id_user'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($option['id_user']) ?> - <?= htmlspecialchars($option['nama_lengkap']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                
-                <!-- Nama Search -->
-                <div class="col-md-3">
-                    <label for="filter_nama" class="form-label">Cari Nama</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-search"></i></span>
-                        <input type="text" name="filter_nama" id="filter_nama" class="form-control" 
-                               placeholder="Nama karyawan..." value="<?= htmlspecialchars($filter_nama) ?>">
+            
+            <div class="kelola-izin-container">
+                <!-- Search and Filter Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Filter Data Presensi</h5>
                     </div>
-                </div>
-                
-                <!-- Tanggal Filter -->
-                <div class="col-md-2">
-                    <label for="filter_tanggal" class="form-label">Tanggal</label>
-                    <input type="date" name="filter_tanggal" id="filter_tanggal" class="form-control" 
-                           value="<?= htmlspecialchars($filter_tanggal) ?>">
-                </div>
-                
-                <!-- Status Filter -->
-                <div class="col-md-2">
-                    <label for="filter_status" class="form-label">Status</label>
-                    <select name="filter_status" id="filter_status" class="form-select">
-                        <option value="semua" <?= $filter_status == 'semua' ? 'selected' : '' ?>>Semua Status</option>
-                        <?php foreach ($status_options as $option): ?>
-                            <option value="<?= $option ?>" <?= $filter_status == $option ? 'selected' : '' ?>>
-                                <?= ucfirst($option) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                
-                <!-- Action Buttons -->
-                <div class="col-md-2 d-flex align-items-end">
-                    <div class="d-grid gap-2 d-md-flex">
-                        <button type="submit" class="btn btn-primary me-md-2">
-                            <i class="fas fa-filter me-1"></i> Filter
-                        </button>
-                        <a href="daftar_presensi.php" class="btn btn-outline-secondary">
-                            <i class="fas fa-sync-alt me-1"></i> Reset
-                        </a>
+                    <div class="card-body">
+                        <form method="GET" class="row g-3">
+                            <!-- ID Karyawan Dropdown -->
+                            <div class="col-md-3">
+                                <label for="filter_id" class="form-label">ID Karyawan</label>
+                                <select name="filter_id" id="filter_id" class="form-select">
+                                    <option value="">Semua Karyawan</option>
+                                    <?php foreach ($nama_options as $option): ?>
+                                        <option value="<?= htmlspecialchars($option['id_user']) ?>" <?= $filter_id == $option['id_user'] ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($option['id_user']) ?> - <?= htmlspecialchars($option['nama_lengkap']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            
+                            <!-- Nama Search -->
+                            <div class="col-md-3">
+                                <label for="filter_nama" class="form-label">Cari Nama</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" name="filter_nama" id="filter_nama" class="form-control" 
+                                           placeholder="Nama karyawan..." value="<?= htmlspecialchars($filter_nama) ?>">
+                                </div>
+                            </div>
+                            
+                            <!-- Tanggal Filter -->
+                            <div class="col-md-2">
+                                <label for="filter_tanggal" class="form-label">Tanggal</label>
+                                <input type="date" name="filter_tanggal" id="filter_tanggal" class="form-control" 
+                                       value="<?= htmlspecialchars($filter_tanggal) ?>">
+                            </div>
+                            
+                            <!-- Status Filter -->
+                            <div class="col-md-2">
+                                <label for="filter_status" class="form-label">Status</label>
+                                <select name="filter_status" id="filter_status" class="form-select">
+                                    <option value="semua" <?= $filter_status == 'semua' ? 'selected' : '' ?>>Semua Status</option>
+                                    <?php foreach ($status_options as $option): ?>
+                                        <option value="<?= $option ?>" <?= $filter_status == $option ? 'selected' : '' ?>>
+                                            <?= ucfirst($option) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="col-md-2 d-flex align-items-end">
+                                <div class="d-grid gap-2 d-md-flex">
+                                    <button type="submit" class="btn btn-primary me-md-2">
+                                        <i class="fas fa-filter me-1"></i> Filter
+                                    </button>
+                                    <a href="daftar_presensi.php" class="btn btn-outline-secondary">
+                                        <i class="fas fa-sync-alt me-1"></i> Reset
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                </div>
-            </form>
-                
-                <!-- Table Section -->
-                   <div class="card-body p-0">
+                    
+                    <!-- Table Section -->
+                    <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="modern-table">
                                 <thead class="table-light">
-                            <tr>
-                                <th>No</th>
-                                <th>ID Karyawan</th>
-                                <th>Nama Karyawan</th>
-                                <th>Tanggal</th>
-                                <th>Jam Masuk</th>
-                                <th>Jam Pulang</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (count($presensi_data) > 0): ?>
-                                <?php foreach ($presensi_data as $index => $row): ?>
                                     <tr>
-                                        <td><?= $index + 1 ?></td>
-                                        <td><?= htmlspecialchars($row['id_user']) ?></td>
-                                        <td><?= htmlspecialchars($row['nama_lengkap']) ?></td>
-                                        <td><?= date('d-m-Y', strtotime($row['tanggal_presensi'])) ?></td>
-                                        <td><?= $row['jam_masuk'] ? date('H:i', strtotime($row['jam_masuk'])) : '-' ?></td>
-                                        <td><?= $row['jam_pulang'] ? date('H:i', strtotime($row['jam_pulang'])) : '-' ?></td>
-                                        <td>
-                                            <?php
-                                            $badge_class = '';
-                                            switch ($row['status']) {
-                                                case 'hadir':
-                                                    $badge_class = 'bg-success';
-                                                    break;
-                                                case 'terlambat':
-                                                    $badge_class = 'bg-warning text-dark';
-                                                    break;
-                                                case 'izin':
-                                                case 'cuti':
-                                                    $badge_class = 'bg-info';
-                                                    break;
-                                                case 'libur':
-                                                    $badge_class = 'bg-secondary';
-                                                    break;
-                                                case 'sakit':
-                                                    $badge_class = 'bg-danger';
-                                                    break;
-                                                default:
-                                                    $badge_class = 'bg-primary';
-                                            }
-                                            ?>
-                                            <span class="badge <?= $badge_class ?>"><?= ucfirst($row['status']) ?></span>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#detailModal<?= $row['id_presensi'] ?>">
-                                                <i class="fas fa-eye"></i> Detail
-                                            </button>
-                                        </td>
+                                        <th>No</th>
+                                        <th>ID Karyawan</th>
+                                        <th>Nama Karyawan</th>
+                                        <th>Tanggal</th>
+                                        <th>Jam Masuk</th>
+                                        <th>Jam Pulang</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
                                     </tr>
-                                    
-                                    <!-- Modal Detail -->
-                                    <div class="modal fade" id="detailModal<?= $row['id_presensi'] ?>" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="detailModalLabel">Detail Presensi</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <div class="row mb-3">
-                                                        <div class="col-md-6">
-                                                            <strong>ID Karyawan:</strong>
-                                                            <p><?= htmlspecialchars($row['id_user']) ?></p>
+                                </thead>
+                                <tbody>
+                                    <?php if (count($presensi_data) > 0): ?>
+                                        <?php foreach ($presensi_data as $index => $row): ?>
+                                            <tr>
+                                                <td><?= $index + 1 ?></td>
+                                                <td><?= htmlspecialchars($row['id_user']) ?></td>
+                                                <td><?= htmlspecialchars($row['nama_lengkap']) ?></td>
+                                                <td><?= date('d-m-Y', strtotime($row['tanggal_presensi'])) ?></td>
+                                                <td><?= $row['jam_masuk'] ? date('H:i', strtotime($row['jam_masuk'])) : '-' ?></td>
+                                                <td><?= $row['jam_pulang'] ? date('H:i', strtotime($row['jam_pulang'])) : '-' ?></td>
+                                                <td>
+                                                    <?php
+                                                    $badge_class = '';
+                                                    switch ($row['status']) {
+                                                        case 'hadir':
+                                                            $badge_class = 'bg-success';
+                                                            break;
+                                                        case 'terlambat':
+                                                            $badge_class = 'bg-warning text-dark';
+                                                            break;
+                                                        case 'izin':
+                                                        case 'cuti':
+                                                            $badge_class = 'bg-info';
+                                                            break;
+                                                        case 'libur':
+                                                            $badge_class = 'bg-secondary';
+                                                            break;
+                                                        case 'sakit':
+                                                            $badge_class = 'bg-danger';
+                                                            break;
+                                                        default:
+                                                            $badge_class = 'bg-primary';
+                                                    }
+                                                    ?>
+                                                    <span class="badge <?= $badge_class ?>"><?= ucfirst($row['status']) ?></span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#detailModal<?= $row['id_presensi'] ?>">
+                                                        <i class="fas fa-eye"></i> Detail
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            
+                                            <!-- Modal Detail -->
+                                            <div class="modal fade" id="detailModal<?= $row['id_presensi'] ?>" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="detailModalLabel">Detail Presensi</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                         </div>
-                                                        <div class="col-md-6">
-                                                            <strong>Nama:</strong>
-                                                            <p><?= htmlspecialchars($row['nama_lengkap']) ?></p>
+                                                        <div class="modal-body">
+                                                            <div class="row mb-3">
+                                                                <div class="col-md-6">
+                                                                    <strong>ID Karyawan:</strong>
+                                                                    <p><?= htmlspecialchars($row['id_user']) ?></p>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <strong>Nama:</strong>
+                                                                    <p><?= htmlspecialchars($row['nama_lengkap']) ?></p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row mb-3">
+                                                                <div class="col-md-6">
+                                                                    <strong>Tanggal:</strong>
+                                                                    <p><?= date('d-m-Y', strtotime($row['tanggal_presensi'])) ?></p>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <strong>Status:</strong>
+                                                                    <p><span class="badge <?= $badge_class ?>"><?= ucfirst($row['status']) ?></span></p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row mb-3">
+                                                                <div class="col-md-6">
+                                                                    <strong>Jam Masuk:</strong>
+                                                                    <p><?= $row['jam_masuk'] ? date('H:i:s', strtotime($row['jam_masuk'])) : '-' ?></p>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <strong>Jam Pulang:</strong>
+                                                                    <p><?= $row['jam_pulang'] ? date('H:i:s', strtotime($row['jam_pulang'])) : '-' ?></p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                                                         </div>
                                                     </div>
-                                                    <div class="row mb-3">
-                                                        <div class="col-md-6">
-                                                            <strong>Tanggal:</strong>
-                                                            <p><?= date('d-m-Y', strtotime($row['tanggal_presensi'])) ?></p>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <strong>Status:</strong>
-                                                            <p><span class="badge <?= $badge_class ?>"><?= ucfirst($row['status']) ?></span></p>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row mb-3">
-                                                        <div class="col-md-6">
-                                                            <strong>Jam Masuk:</strong>
-                                                            <p><?= $row['jam_masuk'] ? date('H:i:s', strtotime($row['jam_masuk'])) : '-' ?></p>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <strong>Jam Pulang:</strong>
-                                                            <p><?= $row['jam_pulang'] ? date('H:i:s', strtotime($row['jam_pulang'])) : '-' ?></p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="8" class="text-center">Tidak ada data presensi ditemukan</td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="8" class="text-center">Tidak ada data presensi ditemukan</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
+            <footer class="flat-footer">
+                <div class="footer-content">
+                    <div class="footer-section">
+                        <p><i class="fas fa-map-marker-alt"></i> Jl. Pinus Raya No.26, Ruko Komp. Pinus Regency</p>
+                    </div>
+                    <div class="footer-section">
+                        <p><i class="fas fa-phone"></i> +62 812-6789-1059</p>
+                    </div>
+                    <div class="footer-section">
+                        <p><i class="fas fa-code"></i> Developed by Sugiri</p>
+                    </div>
+                    <div class="footer-section">
+                        <p>&copy; 2023 PT Abhiseka</p>
+                    </div>
+                </div>
+            </footer>
         </div>
     </div>
-    
-<footer class="flat-footer">
-    <div class="footer-content">
-        <div class="footer-section">
-            <p><i class="fas fa-map-marker-alt"></i> Jl. Pinus Raya No.26, Ruko Komp. Pinus Regency
- </p>
-        </div>
-        <div class="footer-section">
-            <p><i class="fas fa-phone"></i> +62 812-6789-1059</p>
-        </div>
-        <div class="footer-section">
-            <p><i class="fas fa-code"></i> Developed by Sugiri</p>
-        </div>
-        <div class="footer-section">
-            <p>&copy; 2023 PT Abhiseka</p>
-        </div>
-    </div>
-</footer>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+        
+        // Cek status sidebar dari localStorage
+        const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        
+        if (isSidebarCollapsed) {
+            sidebar.classList.add('collapsed');
+        }
+        
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                
+                // Simpan status di localStorage
+                localStorage.setItem('sidebarCollapsed', isCollapsed);
+                
+                // Ganti ikon tombol
+                const icon = this.querySelector('i');
+                if (isCollapsed) {
+                    icon.classList.remove('fa-chevron-left');
+                    icon.classList.add('fa-chevron-right');
+                } else {
+                    icon.classList.remove('fa-chevron-right');
+                    icon.classList.add('fa-chevron-left');
+                }
+            });
+        }
+        
         // Inisialisasi tooltip
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         });
+    });
     </script>
 </body>
 </html>

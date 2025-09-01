@@ -3,7 +3,7 @@ Flask~=2.2.5
 
 # Database Connector
 mysql-connector-python~=8.0.33
-
+flask-cors
 # Environment Variables
 python-dotenv~=1.0.0
 

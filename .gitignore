@@ -1,6 +1,6 @@
 # Python virtual environment
 venv/
-
+.python-version
 # Python cache files
 __pycache__/
 *.pyc
@@ -18,3 +18,5 @@ config.h
 # File dan folder yang dihasilkan oleh IDE (opsional, tapi bagus)
 .vscode/
 .idea/
+
+db_presensi_abhiseka_2025_09_01.sql

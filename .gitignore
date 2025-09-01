@@ -1,0 +1,20 @@
+# Python virtual environment
+venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# File konfigurasi lokal yang berisi rahasia
+.env
+backend/.env
+
+# File konfigurasi Arduino yang berisi rahasia
+config.h
+
+# File sistem operasi macOS
+.DS_Store
+
+# File dan folder yang dihasilkan oleh IDE (opsional, tapi bagus)
+.vscode/
+.idea/

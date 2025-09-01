@@ -12,6 +12,7 @@ from werkzeug.utils import secure_filename # Untuk mengamankan nama file
 
 # cara get uid format json
 app = Flask(__name__)
+<<<<<<< HEAD
 CORS(app, origins=[
          "http://localhost", 
          "http://localhost:80", 
@@ -27,6 +28,9 @@ CORS(app, origins=[
 )
 
 
+=======
+CORS(app)  # Mengizinkan CORS untuk semua domain
+>>>>>>> f959ada0d59a92f880e38daeb4de2921fb885e5a
 load_dotenv() # Memuat variabel dari file .env
 
 # --- Variabel Global untuk Pairing Mode ---
@@ -144,11 +148,19 @@ def get_pengguna():
         cnx = mysql.connector.connect(**db_config)
         cursor = cnx.cursor(dictionary=True)
         cursor.execute("SELECT id_user, nama_lengkap, uid, status FROM pengguna ORDER BY nama_lengkap ASC")
+<<<<<<< HEAD
         pengguna = cursor.fetchall()
         for row in pengguna:
             if isinstance(row['status'], bytes):
                 row['status'] = row['status'].decode('utf-8')
         return jsonify(pengguna)
+=======
+        karyawan = cursor.fetchall()
+        for row in karyawan:
+            if isinstance(row['status'], bytes):
+                row['status'] = row['status'].decode('utf-8')
+        return jsonify(karyawan)
+>>>>>>> f959ada0d59a92f880e38daeb4de2921fb885e5a
     except Error as e:
         return jsonify({"error": str(e)}), 500
     finally:
@@ -217,6 +229,7 @@ def handle_tap():
     try:
         cnx = mysql.connector.connect(**db_config)
         cursor = cnx.cursor(dictionary=True)
+<<<<<<< HEAD
 
         # --- LOGIKA PAIRING ---
         if pairing_info["is_active"]:
@@ -271,6 +284,46 @@ def handle_tap():
             else:
                 return jsonify({"status": "done", "message": "Anda Sudah Konfirmasi Pulang"})
 
+=======
+        
+        cursor.execute("SELECT * FROM pengguna WHERE uid = %s AND status = aktif", (uid,))
+        karyawan = cursor.fetchone()
+        if not karyawan:
+            return jsonify({"status": "error", "message": "Kartu Tidak Terdaftar Atau Kartu Sudah Terdaftar"})
+
+        # MENGAMBIL DATA WAKTU
+        nama_karyawan = karyawan['nama_lengkap']
+        hari_ini = date.today()
+        waktu_hari_ini = datetime.now().time()
+
+        # MENGECEK DATA PRESENSI HARI INI
+        cursor.execute("SELECT id_user, jam_masuk, jam_pulang FROM presensi WHERE uid = %s AND tanggal = %s", (uid, hari_ini))
+        presensi_hari_ini = cursor.fetchone()
+
+        if presensi_hari_ini is None:
+            # KONDISI MELAKUKAN PRESENSI KEHADIRAN
+            if waktu_hari_ini < WAKTU_MASUK_MULAI:
+                return jsonify({"status": "error", "message": "Belum Waktunya Presensi"})
+            keterangan_masuk = 'Hadir' if waktu_hari_ini <= WAKTU_MASUK_AKHIR else 'Terlambat'
+            cursor.execute("INSERT INTO presensi (uid, tanggal_presensi, jam_masuk, status_kehadiran) VALUES (%s, %s, %s, %s)",(uid, hari_ini, waktu_hari_ini, keterangan_masuk))
+            cnx.commit()
+            return jsonify({"status": "success", "message": f"Masuk: {nama_karyawan} ({keterangan_masuk})"})
+        
+        # KONDISI MELAKUKAN PRESENSI PULANG ATAU DUPLIKAT KEHADIRAN
+        elif presensi_hari_ini['jam_pulang'] is None:
+            if waktu_hari_ini >= WAKTU_PULANG_MULAI and waktu_hari_ini <= WAKTU_PULANG_AKHIR:
+                presensi_id = presensi_hari_ini['id_presensi']
+                # UPDATE JAM PULANG
+                cursor.execute("UPDATE presensi SET jam_pulang = %s WHERE id_presensi = %s", (waktu_hari_ini, presensi_id))
+                cnx.commit()
+                return jsonify({"status": "success", "message": f"Pulang: {nama_karyawan}"})
+            else:
+                # SUDAH MELAKUKAN PRESENSI KEHADIRAN TAPI BELUM WAKTUNYA PULANG
+                return jsonify({"status": "done", "message": "Anda Sudah Presensi Kehadiran"})
+        else:
+            # SUDAH KONFIRMASI PULANG SEBELUMNYA
+            return jsonify({"status": "done", "message": "Anda Sudah Konfirmasi Pulang"})
+>>>>>>> f959ada0d59a92f880e38daeb4de2921fb885e5a
     except Error as e:
         return jsonify({"status": "error", "message": f"{e.errno} ({e.sqlstate}): {e.msg}"}), 500
     finally:
@@ -280,6 +333,7 @@ def handle_tap():
 
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     app.run(debug=True, host='0.0.0.0', port=5001)
 
 
@@ -340,3 +394,6 @@ if __name__ == '__main__':
     #     if 'cnx' in locals() and cnx.is_connected():
     #         cursor.close()
     #         cnx.close()
+=======
+    app.run(debug=True, host='0.0.0.0', port=5001)
+>>>>>>> f959ada0d59a92f880e38daeb4de2921fb885e5a

@@ -144,7 +144,6 @@ $presensi = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="main-content">
             <!-- Navbar -->
             <nav class="navbar">
-                <div class="navbar-title">Riwayat Presensi</div>
                 <div class="navbar-user">
                     <img src="<?= htmlspecialchars($foto_path) ?>" alt="User" class="user-profile">
                     <span><?= htmlspecialchars($user['nama_lengkap']) ?></span>

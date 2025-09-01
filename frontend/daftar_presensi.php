@@ -270,10 +270,9 @@ $foto_path = !empty($user['foto_path']) ? $user['foto_path'] : '../images/defaul
         <div class="main-content">
             <!-- Navbar -->
             <nav class="navbar">
-                <div class="navbar-title">Daftar Presensi</div>
                 <div class="navbar-user">
-                    <img src="<?= htmlspecialchars($foto_path) ?>" alt="Profile" class="user-profile">
-                    <span><?= htmlspecialchars($user['nama_lengkap']) ?></span>
+                    <img src="<?= $foto_path ?>" alt="User" class="rounded-circle me-2" width="40" height="40">
+                    <span><?php echo $_SESSION['nama_lengkap']; ?></span>
                 </div>
             </nav>
 <div class="kelola-izin-container">

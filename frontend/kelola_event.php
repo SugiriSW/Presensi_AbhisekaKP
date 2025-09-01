@@ -194,7 +194,6 @@ $events = $stmt->fetchAll();
         <div class="main-content">
             <!-- Navbar -->
             <nav class="navbar">
-                <div class="navbar-title">Kelola Event</div>
                 <div class="navbar-user">
                     <img src="<?= $foto_path ?>" alt="User" class="rounded-circle me-2" width="40" height="40">
                     <span><?php echo $_SESSION['nama_lengkap']; ?></span>

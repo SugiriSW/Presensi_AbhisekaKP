@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, render_template, request
 import mysql.connector
 from mysql.connector import Error
+from flask_cors import CORS
 import threading
 from dotenv import load_dotenv
 import time
@@ -11,6 +12,7 @@ from werkzeug.utils import secure_filename # Untuk mengamankan nama file
 
 # cara get uid format json
 app = Flask(__name__)
+CORS(app)  # Mengizinkan CORS untuk semua domain
 load_dotenv() # Memuat variabel dari file .env
 
 #Konfigurasi database
@@ -26,14 +28,6 @@ UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER_FOTO')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-# --- Variabel Global untuk Pairing Mode ---
-# Tahap Development.
-# pairing_info = {
-#     "is_active": False,
-#     "user_id_to_pair": None,
-#     "timestamp": 0
-# }
-
 # --- Variabel Global untuk Cek UID ---
 last_tapped_uid = {"uid": None}
 # las_tapped_uid -> simpan ke var json -> baru upload ke db
@@ -43,6 +37,7 @@ last_tapped_uid = {"uid": None}
 WAKTU_MASUK_MULAI = dt_time(7, 0, 0)
 WAKTU_MASUK_AKHIR = dt_time(9, 0, 0)
 WAKTU_PULANG_MULAI = dt_time(17, 0, 0)
+WAKTU_PULANG_AKHIR = dt_time(22, 0, 0)
 
 # === Endpoint untuk Frontend Web ===
 
@@ -77,9 +72,9 @@ def add_karyawan():
         cursor = cnx.cursor()
 
         if uid:
-            cursor.execute("SELECT id FROM karyawan WHERE id = %s OR username = %s OR uid = %s", (id_user, username, uid))
+            cursor.execute("SELECT id_user FROM pengguna WHERE id_user = %s OR username = %s OR uid = %s", (id_user, username, uid))
         else:
-            cursor.execute("SELECT id FROM karyawan WHERE id = %s OR username = %s", (id_user, username))
+            cursor.execute("SELECT id_user FROM pengguna WHERE id_user = %s OR username = %s", (id_user, username))
         
         if cursor.fetchone():
             return jsonify({"status": "error", "message": "ID User, Username, atau UID sudah digunakan!"}), 409
@@ -99,7 +94,7 @@ def add_karyawan():
         uid_to_insert = uid if uid else None
 
         cursor.execute(
-            "INSERT INTO karyawan (id, username, password, nama, email, peran, uid, foto_path) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+            "INSERT INTO pengguna (id_user, username, password, nama_lengkap, email, peran, uid, foto_path) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
             (id_user, username, hashed_password, nama_lengkap, email, peran, uid_to_insert, foto_path)
         )
         cnx.commit()
@@ -118,11 +113,11 @@ def get_karyawan():
     try:
         cnx = mysql.connector.connect(**db_config)
         cursor = cnx.cursor(dictionary=True)
-        cursor.execute("SELECT id, nama, uid, status_aktif FROM karyawan ORDER BY nama ASC")
+        cursor.execute("SELECT id_user, nama_lengkap, uid, status FROM pengguna ORDER BY nama_lengkap ASC")
         karyawan = cursor.fetchall()
         for row in karyawan:
-            if isinstance(row['status_aktif'], bytes):
-                row['status_aktif'] = row['status_aktif'].decode('utf-8')
+            if isinstance(row['status'], bytes):
+                row['status'] = row['status'].decode('utf-8')
         return jsonify(karyawan)
     except Error as e:
         return jsonify({"error": str(e)}), 500
@@ -135,11 +130,11 @@ def get_karyawan():
 @app.route('/api/karyawan/<string:id>', methods=['PUT'])
 def update_karyawan(id):
     data = request.json
-    nama = data.get('nama', '').strip()
-    status_aktif = data.get('status_aktif')
+    nama_lengkap = data.get('nama_lengkap', '').strip()
+    status = data.get('status')
     uid = data.get('uid', '').strip()
 
-    if not nama or status_aktif is None:
+    if not nama_lengkap or status_aktif is None:
         return jsonify({"status": "error", "message": "Nama dan Status tidak boleh kosong"}), 400
     
     uid_to_update = uid if uid else None
@@ -148,11 +143,11 @@ def update_karyawan(id):
         cnx = mysql.connector.connect(**db_config)
         cursor = cnx.cursor()
         if uid_to_update:
-            cursor.execute("SELECT id FROM karyawan WHERE uid = %s AND id != %s", (uid_to_update, id))
+            cursor.execute("SELECT id_user FROM pengguna WHERE uid = %s AND id_user != %s", (uid_to_update, id))
             if cursor.fetchone():
                 return jsonify({"status": "error", "message": "UID tersebut sudah digunakan oleh karyawan lain."}), 409
 
-        cursor.execute("UPDATE karyawan SET nama = %s, status_aktif = %s, uid = %s WHERE id = %s", (nama, status_aktif, uid_to_update, id))
+        cursor.execute("UPDATE pengguna SET nama_lengkap = %s, status = %s, uid = %s WHERE id = %s", (nama_lengkap, status, uid_to_update, id))
         cnx.commit()
         return jsonify({"status": "success", "message": "Data karyawan berhasil diperbarui"})
     except Error as e:
@@ -168,7 +163,7 @@ def delete_karyawan(id):
     try:
         cnx = mysql.connector.connect(**db_config)
         cursor = cnx.cursor()
-        cursor.execute("DELETE FROM karyawan WHERE id = %s", (id,))
+        cursor.execute("DELETE FROM pengguna WHERE id_user = %s", (id,))
         cnx.commit()
         return jsonify({"status": "success", "message": "Karyawan berhasil dihapus"})
     except Error as e:
@@ -193,32 +188,42 @@ def handle_tap():
         cnx = mysql.connector.connect(**db_config)
         cursor = cnx.cursor(dictionary=True)
         
-        cursor.execute("SELECT * FROM karyawan WHERE uid = %s AND status_aktif = TRUE", (uid,))
+        cursor.execute("SELECT * FROM pengguna WHERE uid = %s AND status = aktif", (uid,))
         karyawan = cursor.fetchone()
         if not karyawan:
-            return jsonify({"status": "error", "message": "Kartu Tidak Terdaftar"})
+            return jsonify({"status": "error", "message": "Kartu Tidak Terdaftar Atau Kartu Sudah Terdaftar"})
 
-        nama_karyawan = karyawan['nama']
-        today = date.today()
-        now_time = datetime.now().time()
-        cursor.execute("SELECT id, jam_pulang FROM presensi WHERE uid = %s AND tanggal = %s", (uid, today))
+        # MENGAMBIL DATA WAKTU
+        nama_karyawan = karyawan['nama_lengkap']
+        hari_ini = date.today()
+        waktu_hari_ini = datetime.now().time()
+
+        # MENGECEK DATA PRESENSI HARI INI
+        cursor.execute("SELECT id_user, jam_masuk, jam_pulang FROM presensi WHERE uid = %s AND tanggal = %s", (uid, hari_ini))
         presensi_hari_ini = cursor.fetchone()
 
         if presensi_hari_ini is None:
-            if now_time < WAKTU_MASUK_MULAI:
+            # KONDISI MELAKUKAN PRESENSI KEHADIRAN
+            if waktu_hari_ini < WAKTU_MASUK_MULAI:
                 return jsonify({"status": "error", "message": "Belum Waktunya Presensi"})
-            keterangan_masuk = 'TEPAT WAKTU' if now_time <= WAKTU_MASUK_AKHIR else 'TERLAMBAT'
-            cursor.execute("INSERT INTO presensi (uid, tanggal, jam_masuk, keterangan) VALUES (%s, %s, %s, %s)",(uid, today, now_time, keterangan_masuk))
+            keterangan_masuk = 'Hadir' if waktu_hari_ini <= WAKTU_MASUK_AKHIR else 'Terlambat'
+            cursor.execute("INSERT INTO presensi (uid, tanggal_presensi, jam_masuk, status_kehadiran) VALUES (%s, %s, %s, %s)",(uid, hari_ini, waktu_hari_ini, keterangan_masuk))
             cnx.commit()
             return jsonify({"status": "success", "message": f"Masuk: {nama_karyawan} ({keterangan_masuk})"})
+        
+        # KONDISI MELAKUKAN PRESENSI PULANG ATAU DUPLIKAT KEHADIRAN
         elif presensi_hari_ini['jam_pulang'] is None:
-            if now_time >= WAKTU_PULANG_MULAI:
-                cursor.execute("UPDATE presensi SET jam_pulang = %s WHERE id = %s", (now_time, presensi_hari_ini['id']))
+            if waktu_hari_ini >= WAKTU_PULANG_MULAI and waktu_hari_ini <= WAKTU_PULANG_AKHIR:
+                presensi_id = presensi_hari_ini['id_presensi']
+                # UPDATE JAM PULANG
+                cursor.execute("UPDATE presensi SET jam_pulang = %s WHERE id_presensi = %s", (waktu_hari_ini, presensi_id))
                 cnx.commit()
                 return jsonify({"status": "success", "message": f"Pulang: {nama_karyawan}"})
             else:
-                return jsonify({"status": "done", "message": "Anda Sudah Presensi Masuk"})
+                # SUDAH MELAKUKAN PRESENSI KEHADIRAN TAPI BELUM WAKTUNYA PULANG
+                return jsonify({"status": "done", "message": "Anda Sudah Presensi Kehadiran"})
         else:
+            # SUDAH KONFIRMASI PULANG SEBELUMNYA
             return jsonify({"status": "done", "message": "Anda Sudah Konfirmasi Pulang"})
     except Error as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -228,4 +233,4 @@ def handle_tap():
             cnx.close()
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5001)

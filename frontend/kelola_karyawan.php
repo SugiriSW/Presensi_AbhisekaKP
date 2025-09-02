@@ -186,20 +186,20 @@ $daftar_karyawan = $stmt->fetchAll();
                     if (!response.ok) throw new Error('HTTP error');
                     return response.json();
                 })
-                .then(data => {
-                    if (data.uid) {
-                        document.getElementById("uid").value = data.uid;
-                        showAlert(`UID berhasil dibaca: ${data.uid}`, 'success');
-                    } else {
-                        throw new Error('Data UID tidak valid');
-                    }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    showAlert('Gagal membaca UID. Cek koneksi atau server NFC.', 'danger');
-                    // Fallback: Input manual
-                    document.getElementById("uid").readOnly = false;
-                });
+            .then(data => {
+                if (data.uid) {
+                    document.getElementById("uid").value = data.uid;
+                    showAlert(`<span class="text-success">Berhasil</span> membaca UID: ${data.uid}`, 'success');
+                } else {
+                    throw new Error('Data UID tidak valid');
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                showAlert(`<span class="text-danger">Gagal</span> membaca UID. Cek koneksi atau server NFC.`, 'danger');
+                // Fallback: Input manual
+                document.getElementById("uid").readOnly = false;
+            });
         }
 
         // Fungsi untuk menampilkan alert
@@ -270,16 +270,13 @@ $daftar_karyawan = $stmt->fetchAll();
             color: #6c757d;
             margin-top: 5px;
         }
-    </style>
-</head>
-<body>
+    </style><body>
     <div class="dashboard-fluid">
         <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 sidebar">
+        <di        <div class="col-md-3 col-lg-2 sidebar">
             <div class="sidebar-header">
                 <img src="../images/Abhiseka.png" alt="Logo Perusahaan" class="heading-image">
-            </div>
-            
+            </div>   
             <nav class="sidebar-nav">
                 <a href="dashboard.php" class="nav-link">
                     <i class="fas fa-home"></i>
@@ -577,5 +574,132 @@ $daftar_karyawan = $stmt->fetchAll();
     </footer>
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script src="js/script.js"></script>
+</body>
+</    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Fungsi untuk mengambil UID dari server NFC
+        function getUID() {
+            const serverUrl = "http://localhost:5001";
+            
+            fetch(`${serverUrl}/api/last-uid`)
+                .then(response => {
+                    if (!response.ok) throw new Error('HTTP error');
+                    return response.json();
+                })
+            .then(data => {
+                if (data.uid) {
+                    document.getElementById("uid").value = data.uid;
+                    showAlert(`<span class="text-success">Berhasil</span> membaca UID: ${data.uid}`, 'success');
+                } else {
+                    throw new Error('Data UID tidak valid');
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                showAlert(`<span class="text-danger">Gagal</span> membaca UID. Cek koneksi atau server NFC.`, 'danger');
+                // Fallback: Input manual
+                document.getElementById("uid").readOnly = false;
+            });
+        }
+
+        // Fungsi untuk menampilkan alert
+        function showAlert(message, type) {
+            // Hapus alert sebelumnya jika ada
+            const existingAlert = document.querySelector('.alert-nfc');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-nfc alert-dismissible fade show mt-2`;
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Tempatkan alert di atas form
+            const uidField = document.getElementById('uid');
+            uidField.parentNode.appendChild(alertDiv);
+            
+            // Hapus alert setelah 5 detik
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Panggil getUID saat halaman dimuat
+        window.addEventListener('DOMContentLoaded', (event) => {
+            getUID();
+        });
+
+        // Validasi file PKL sebelum upload
+        function validatePKLFile(input) {
+            const file = input.files[0];
+            if (file) {
+                const fileName = file.name;
+                const fileExt = fileName.split('.').pop().toLowerCase();
+                
+                if (fileExt !== 'pkl') {
+                    alert('Hanya file dengan format .pkl yang diizinkan!');
+                    input.value = '';
+                    return false;
+                }
+                
+                // Tampilkan nama file yang dipilih
+                const fileNameDisplay = document.getElementById('file-name-display');
+                fileNameDisplay.textContent = `File terpilih: ${fileName}`;
+                fileNameDisplay.style.display = 'block';
+                
+                return true;
+            }
+            return false;
+        }
+        
+        // Fungsi untuk toggle sidebar
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            
+            // Cek status sidebar dari localStorage
+            const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            
+            if (isSidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                mainContent.style.marginLeft = '70px';
+            }
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('collapsed');
+                    
+                    const isCollapsed = sidebar.classList.contains('collapsed');
+                    
+                    // Sesuaikan margin main content
+                    if (isCollapsed) {
+                        mainContent.style.marginLeft = '70px';
+                    } else {
+                        mainContent.style.marginLeft = '0';
+                    }
+                    
+                    // Simpan status di localStorage
+                    localStorage.setItem('sidebarCollapsed', isCollapsed);
+                    
+                    // Ganti ikon tombol
+                    const icon = this.querySelector('i');
+                    if (isCollapsed) {
+                        icon.classList.remove('fa-chevron-left');
+                        icon.classList.add('fa-chevron-right');
+                    } else {
+                        icon.classList.remove('fa-chevron-right');
+                        icon.classList.add('fa-chevron-left');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

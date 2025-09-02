@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 }
 
 // Filter status
-$status_filter = $_GET['status'] ?? 'menunggu';
+$status_filter = $_GET['status'] ?? 'Menunggu';
 
 // Pagination
 $limit = 10; // Jumlah data per halaman

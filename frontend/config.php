@@ -1,6 +1,6 @@
 <?php
 $host = 'localhost';
-$db   = 'db_presensi_abhiseka';
+$db   = 'db_presensi_abhiseka_rev1';
 $user = 'root';
 $pass = '';
 $charset = 'utf8mb4';

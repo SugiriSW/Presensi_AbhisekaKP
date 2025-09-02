@@ -71,6 +71,35 @@ $presensi = $stmt->fetchAll(PDO::FETCH_ASSOC);
             background-color: var(--warning-color);
             color: white;
         }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .badge-hadir {
+            background-color: #28a745; /* hijau */
+        }
+
+        .badge-izin {
+            background-color: #ffc107; /* kuning */
+            color: #000;
+        }
+
+        .badge-sakit {
+            background-color: #17a2b8; /* biru */
+        }
+
+        .badge-alpa {
+            background-color: #dc3545; /* merah */
+        }
+
+        .badge-default {
+            background-color: #6c757d; /* abu-abu */
+        }
+
     </style>
 </head>
 <body>
@@ -182,28 +211,29 @@ $presensi = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                     <span class="text-muted">-</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td data-label="Status">
-                                                <?php 
-                                                $badge_class = '';
-                                                switch ($row['status']) {
-                                                    case 'hadir':
-                                                        $badge_class = 'badge-success';
-                                                        break;
-                                                    case 'terlambat':
-                                                        $badge_class = 'badge-warning';
-                                                        break;
-                                                    case 'izin':
-                                                    case 'cuti':
-                                                        $badge_class = 'badge-info';
-                                                        break;
-                                                    case 'libur':
-                                                        $badge_class = 'badge-primary';
-                                                        break;
-                                                    default:
-                                                        $badge_class = 'badge-secondary';
-                                                }
-                                                ?>
-                                                <span class="status-badge <?= $badge_class ?>"><?= ucfirst($row['status']) ?></span>
+                                            <td data-label="status_kehadiran">
+<?php
+$status = strtolower($row['status_kehadiran']);
+switch ($status) {
+    case 'hadir':
+        $badge_class = 'badge-hadir';
+        break;
+    case 'izin':
+        $badge_class = 'badge-izin';
+        break;
+    case 'sakit':
+        $badge_class = 'badge-sakit';
+        break;
+    case 'alpa':
+        $badge_class = 'badge-alpa';
+        break;
+    default:
+        $badge_class = 'badge-default';
+        break;
+}
+?>
+<span class="status-badge <?= $badge_class ?>"><?= ucfirst($row['status_kehadiran']) ?></span>
+
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>

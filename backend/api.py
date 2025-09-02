@@ -12,20 +12,8 @@ from werkzeug.utils import secure_filename # Untuk mengamankan nama file
 
 # cara get uid format json
 app = Flask(__name__)
-CORS(app, origins=[
-         "http://localhost", 
-         "http://localhost:80", 
-         "http://localhost:8080", 
-         "http://127.0.0.1",
-         "http://localhost/Presensi_AbhisekaKP/frontend/kelola_karyawan.php",
-         "http://localhost/Presensi_AbhisekaKP/frontend",
-         "http://192.168.222.217",
-         "http://192.168.222.217/handle-tap"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-     allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
-     supports_credentials=True
-)
 
+CORS(app)
 
 load_dotenv() # Memuat variabel dari file .env
 
@@ -72,16 +60,6 @@ def dashboard():
 @app.route('/api/last-uid', methods=['GET'])
 def get_last_uid():
     return jsonify(last_tapped_uid)
-
-# @app.before_request
-# def handle_preflight():
-#     if request.method == "OPTIONS":
-#         response = make_response()
-#         response.headers.add("Access-Control-Allow-Origin", "*")
-#         response.headers.add('Access-Control-Allow-Headers', "*")
-#         response.headers.add('Access-Control-Allow-Methods', "*")
-#         return response
-
 
 # API untuk CRUD pengguna 
 @app.route('/api/pengguna', methods=['POST','OPTIONS'])
@@ -281,61 +259,3 @@ def handle_tap():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)
-
-    # # LOGIKA PAIRING
-    # if pairing_info["is_active"]:
-    #     user_id = pairing_info["user_id_to_pair"]
-    #     cursor.execute("SELECT nama_lengkap FROM pengguna WHERE uid = %s", (uid,))
-    #     if cursor.fetchone(): return jsonify({"status": "error", "message": "Kartu sudah dimiliki orang lain"})
-        
-    #     cursor.execute("UPDATE pengguna SET uid = %s WHERE id_user = %s", (uid, user_id))
-    #     cnx.commit()
-    #     pairing_info.update({"is_active": False, "user_id_to_pair": None})
-    #     return jsonify({"status": "success", "message": "Registrasi Berhasil!"})
-    # try:
-    #     cnx = mysql.connector.connect(**db_config)
-    #     cursor = cnx.cursor(dictionary=True)
-        
-    #     cursor.execute("SELECT * FROM pengguna WHERE uid = %s AND status = 'aktif'", (uid,))
-    #     pengguna = cursor.fetchone()
-    #     if not pengguna:
-    #         return jsonify({"status": "error", "message": "Kartu Tidak Terdaftar Atau Kartu Sudah Terdaftar"})
-
-    #     # MENGAMBIL DATA WAKTU
-    #     nama_pengguna = pengguna['nama_lengkap']
-    #     hari_ini = date.today()
-    #     waktu_hari_ini = datetime.now().time()
-
-    #     # MENGECEK DATA PRESENSI HARI INI
-    #     cursor.execute("SELECT id_user, jam_masuk, jam_pulang FROM presensi WHERE uid = %s AND tanggal_presensi = %s", (uid, hari_ini))
-    #     presensi_hari_ini = cursor.fetchone()
-
-    #     if presensi_hari_ini is None:
-    #         # KONDISI MELAKUKAN PRESENSI KEHADIRAN
-    #         if waktu_hari_ini < WAKTU_MASUK_MULAI:
-    #             return jsonify({"status": "error", "message": "Belum Waktunya Presensi"})
-    #         keterangan_masuk = 'Hadir' if waktu_hari_ini <= WAKTU_MASUK_AKHIR else 'Terlambat'
-    #         cursor.execute("INSERT INTO presensi (uid, tanggal_presensi, jam_masuk, status_kehadiran) VALUES (%s, %s, %s, %s)",(uid, hari_ini, waktu_hari_ini, keterangan_masuk))
-    #         cnx.commit()
-    #         return jsonify({"status": "success", "message": f"Masuk: {nama_pengguna} ({keterangan_masuk})"})
-        
-    #     # KONDISI MELAKUKAN PRESENSI PULANG ATAU DUPLIKAT KEHADIRAN
-    #     elif presensi_hari_ini['jam_pulang'] is None:
-    #         if waktu_hari_ini >= WAKTU_PULANG_MULAI and waktu_hari_ini <= WAKTU_PULANG_AKHIR:
-    #             presensi_id = presensi_hari_ini['id_presensi']
-    #             # UPDATE JAM PULANG
-    #             cursor.execute("UPDATE presensi SET jam_pulang = %s WHERE id_presensi = %s", (waktu_hari_ini, presensi_id))
-    #             cnx.commit()
-    #             return jsonify({"status": "success", "message": f"Pulang: {nama_pengguna}"})
-    #         else:
-    #             # SUDAH MELAKUKAN PRESENSI KEHADIRAN TAPI BELUM WAKTUNYA PULANG
-    #             return jsonify({"status": "done", "message": "Anda Sudah Presensi Kehadiran"})
-    #     else:
-    #         # SUDAH KONFIRMASI PULANG SEBELUMNYA
-    #         return jsonify({"status": "done", "message": "Anda Sudah Konfirmasi Pulang"})
-    # except Error as e:
-    #     return jsonify({"status": "error", "message": str(e)}), 500
-    # finally:
-    #     if 'cnx' in locals() and cnx.is_connected():
-    #         cursor.close()
-    #         cnx.close(_

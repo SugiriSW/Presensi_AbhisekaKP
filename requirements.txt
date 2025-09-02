@@ -3,6 +3,35 @@ Flask~=2.2.5
 
 # Database Connector
 mysql-connector-python~=8.0.33
+flask-cors
+# Environment Variables
+python-dotenv~=1.0.0
+
+opencv-python
+playsound==1.2.2
+opencv-contrib-python
+opencv-contrib-python
+scikit-learn
+pyfirmata
+face_recognition
+matplotlib
+scipy
+dlib
+numpy
+imutils
+requests
+pandas
+playsound
+wheel
+pyttsx3
+gTTS
+streamlit
+streamlit_autorefresh
+# Framework
+Flask~=2.2.5
+
+# Database Connector
+mysql-connector-python~=8.0.33
 
 # Environment Variables
 python-dotenv~=1.0.0

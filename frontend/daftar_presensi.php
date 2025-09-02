@@ -203,48 +203,6 @@ $foto_path = !empty($user['foto_path']) ? $user['foto_path'] : '../images/defaul
         .avatar-container:hover {
             transform: scale(1.03);
         }
-        .flat-footer {
-    background-color: #f8f9fa;
-    border-top: 1px solid #e9ecef;
-    padding: 15px 0;
-    margin-top: 30px;
-}
-
-.footer-content {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 20px 40px;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-    font-size: 0.9rem;
-    color: #6c757d;
-}
-
-.footer-section {
-    display: flex;
-    align-items: center;
-}
-
-.footer-section i {
-    margin-right: 8px;
-    color: var(--primary-color);
-}
-
-/* Responsive adjustment */
-@media (max-width: 600px) {
-    .footer-content {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
-    }
-    
-    .footer-section {
-        justify-content: center;
-    }
-}
 
     </style>
 </head>
@@ -502,8 +460,10 @@ $foto_path = !empty($user['foto_path']) ? $user['foto_path'] : '../images/defaul
             </div>
         </div>
     </div>
-    
-    <!-- Footer yang telah disesuaikan -->
+</div>
+</div>
+
+    <!-- Footer -->
     <footer class="flat-footer">
         <div class="footer-content">
             <div class="footer-section">

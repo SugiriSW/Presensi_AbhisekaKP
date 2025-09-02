@@ -1240,22 +1240,3 @@ table.modern-table tbody tr:last-of-type {
         justify-content: center;
     }
 }
-.flat-footer {
-    background: var(--primary-dark);
-    color: white;
-    text-align: center;
-    padding: 15px 0;
-    margin-top: 30px;
-}
-
-.footer-content {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.footer-section p {
-    margin: 0;
-    font-size: 0.9rem;
-}

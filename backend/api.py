@@ -40,8 +40,6 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 # --- Variabel Global untuk Cek UID ---
 last_tapped_uid = {"uid": None}
-# las_tapped_uid -> simpan ke var json -> baru upload ke db
-#  ada yg di upload ke db, ada yang masuk ke presensi
 
 # --- ATURAN JAM KERJA ---
 WAKTU_MASUK_MULAI = dt_time(7, 0, 0)
@@ -61,131 +59,8 @@ def dashboard():
 def get_last_uid():
     return jsonify(last_tapped_uid)
 
-# API untuk CRUD pengguna 
-@app.route('/api/pengguna', methods=['POST','OPTIONS'])
-def add_pengguna():
-    try:
-        id_user = request.form.get('id_user', '').strip()
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password', '').strip()
-        nama_lengkap = request.form.get('nama_lengkap', '').strip()
-        email = request.form.get('email', '').strip()
-        peran = request.form.get('peran', '').strip()
-        uid = request.form.get('uid', '').strip()
-
-        if not all([id_user, username, password, nama_lengkap, email, peran]):
-            return jsonify({"status": "error", "message": "Semua field (kecuali UID) wajib diisi!"}), 400
-
-        cnx = mysql.connector.connect(**db_config)
-        cursor = cnx.cursor()
-
-        if uid:
-            cursor.execute("SELECT id_user FROM pengguna WHERE id_user = %s OR username = %s OR uid = %s", (id_user, username, uid))
-        else:
-            cursor.execute("SELECT id_user FROM pengguna WHERE id_user = %s OR username = %s", (id_user, username))
-        
-        if cursor.fetchone():
-            return jsonify({"status": "error", "message": "ID User, Username, atau UID sudah digunakan!"}), 409
-
-        hashed_password = generate_password_hash(password)
-        foto_path = None
-        if 'foto' in request.files:
-            file = request.files['foto']
-            if file and file.filename != '' and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                unique_filename = str(int(time.time())) + '_' + filename
-                if not os.path.exists(app.config['UPLOAD_FOLDER']):
-                    os.makedirs(app.config['UPLOAD_FOLDER'])
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
-                foto_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-
-        uid_to_insert = uid if uid else None
-
-        cursor.execute(
-            "INSERT INTO pengguna (id_user, username, password, nama_lengkap, email, peran, uid, foto_path) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-            (id_user, username, hashed_password, nama_lengkap, email, peran, uid_to_insert, foto_path)
-        )
-        cnx.commit()
-        
-        return jsonify({"status": "success", "message": "pengguna berhasil ditambahkan!"}), 201
-
-    except Error as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-    finally:
-        if 'cnx' in locals() and cnx.is_connected():
-            cursor.close()
-            cnx.close()
-
-@app.route('/api/pengguna', methods=['GET', 'OPTIONS'])
-def get_pengguna():
-    try:
-        cnx = mysql.connector.connect(**db_config)
-        cursor = cnx.cursor(dictionary=True)
-        cursor.execute("SELECT id_user, nama_lengkap, uid, status FROM pengguna ORDER BY nama_lengkap ASC")
-        pengguna = cursor.fetchall()
-        for row in pengguna:
-            if isinstance(row['status'], bytes):
-                row['status'] = row['status'].decode('utf-8')
-        return jsonify(pengguna)
-    except Error as e:
-        return jsonify({"error": str(e)}), 500
-    finally:
-        if 'cnx' in locals() and cnx.is_connected():
-            cursor.close()
-            cnx.close()
-
-# UPDATE: Mengubah data pengguna (Diperbarui)
-@app.route('/api/pengguna/<string:id>', methods=['PUT', 'OPTIONS'])
-def update_pengguna(id):
-    data = request.json
-    nama_lengkap = data.get('nama_lengkap', '').strip()
-    status = data.get('status')
-    uid = data.get('uid', '').strip()
-
-    if not nama_lengkap or status_aktif is None:
-        return jsonify({"status": "error", "message": "Nama dan Status tidak boleh kosong"}), 400
-    
-    uid_to_update = uid if uid else None
-
-    try:
-        cnx = mysql.connector.connect(**db_config)
-        cursor = cnx.cursor()
-        if uid_to_update:
-            cursor.execute("SELECT id_user FROM pengguna WHERE uid = %s AND id_user != %s", (uid_to_update, id))
-            if cursor.fetchone():
-                return jsonify({"status": "error", "message": "UID tersebut sudah digunakan oleh pengguna lain."}), 409
-
-        cursor.execute("UPDATE pengguna SET nama_lengkap = %s, status = %s, uid = %s WHERE id = %s", (nama_lengkap, status, uid_to_update, id))
-        cnx.commit()
-        return jsonify({"status": "success", "message": "Data pengguna berhasil diperbarui"})
-    except Error as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-    finally:
-        if 'cnx' in locals() and cnx.is_connected():
-            cursor.close()
-            cnx.close()
-
-# DELETE: Menghapus pengguna (Diperbarui)
-@app.route('/api/pengguna/<string:id>', methods=['DELETE', 'OPTIONS'])
-def delete_pengguna(id):
-    try:
-        cnx = mysql.connector.connect(**db_config)
-        cursor = cnx.cursor()
-        cursor.execute("DELETE FROM pengguna WHERE id_user = %s", (id,))
-        cnx.commit()
-        return jsonify({"status": "success", "message": "pengguna berhasil dihapus"})
-    except Error as e:
-        if e.errno == 1451:
-            return jsonify({"status": "error", "message": "Tidak bisa menghapus, pengguna sudah memiliki data presensi."}), 409
-        return jsonify({"status": "error", "message": str(e)}), 500
-    finally:
-        if 'cnx' in locals() and cnx.is_connected():
-            cursor.close()
-            cnx.close()
-
-
 # ENDPOINT IOT 
-@app.route('/handle-tap', methods=['POST','OPTIONS'])
+@app.route('/handle-tap', methods=['POST'])
 def handle_tap():
     uid = request.json.get('uid')
     if not uid: return jsonify({"status": "error", "message": "UID tidak ada"}), 400

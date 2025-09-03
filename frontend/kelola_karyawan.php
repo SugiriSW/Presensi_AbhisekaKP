@@ -181,7 +181,7 @@ $daftar_karyawan = $stmt->fetchAll();
         function getUID() {
             const serverUrl = "http://localhost:5001";
             
-            fetch(`${serverUrl}/api/last-uid`)
+            fetch(${serverUrl}/api/last-uid)
                 .then(response => {
                     if (!response.ok) throw new Error('HTTP error');
                     return response.json();
@@ -189,14 +189,14 @@ $daftar_karyawan = $stmt->fetchAll();
             .then(data => {
                 if (data.uid) {
                     document.getElementById("uid").value = data.uid;
-                    showAlert(`<span class="text-success">Berhasil</span> membaca UID: ${data.uid}`, 'success');
+                    showAlert(<span class="text-success">Berhasil</span> membaca UID: ${data.uid}, 'success');
                 } else {
                     throw new Error('Data UID tidak valid');
                 }
             })
             .catch(error => {
                 console.error("Error:", error);
-                showAlert(`<span class="text-danger">Gagal</span> membaca UID. Cek koneksi atau server NFC.`, 'danger');
+                showAlert(<span class="text-danger">Gagal</span> membaca UID. Cek koneksi atau server NFC., 'danger');
                 // Fallback: Input manual
                 document.getElementById("uid").readOnly = false;
             });
@@ -211,7 +211,7 @@ $daftar_karyawan = $stmt->fetchAll();
             }
             
             const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} alert-nfc alert-dismissible fade show mt-2`;
+            alertDiv.className = alert alert-${type} alert-nfc alert-dismissible fade show mt-2;
             alertDiv.role = 'alert';
             alertDiv.innerHTML = `
                 ${message}
@@ -250,7 +250,7 @@ $daftar_karyawan = $stmt->fetchAll();
                 
                 // Tampilkan nama file yang dipilih
                 const fileNameDisplay = document.getElementById('file-name-display');
-                fileNameDisplay.textContent = `File terpilih: ${fileName}`;
+                fileNameDisplay.textContent = File terpilih: ${fileName};
                 fileNameDisplay.style.display = 'block';
                 
                 return true;
@@ -467,6 +467,9 @@ $daftar_karyawan = $stmt->fetchAll();
                                         <button type="submit" name="tambah_karyawan" class="btn btn-primary btn-lg">
                                             <i class="fas fa-save"></i> Simpan Data
                                         </button>
+                                        <a href="rekam_wajah.php" class="btn btn-success btn-lg ms-2">
+                                            <i class="fas fa-camera"></i> Rekam Wajah
+                                        </a>
                                     </div>
                                 </form>
                             </div>
@@ -581,7 +584,7 @@ $daftar_karyawan = $stmt->fetchAll();
         function getUID() {
             const serverUrl = "http://localhost:5001";
             
-            fetch(`${serverUrl}/api/last-uid`)
+            fetch(${serverUrl}/api/last-uid)
                 .then(response => {
                     if (!response.ok) throw new Error('HTTP error');
                     return response.json();
@@ -589,14 +592,14 @@ $daftar_karyawan = $stmt->fetchAll();
             .then(data => {
                 if (data.uid) {
                     document.getElementById("uid").value = data.uid;
-                    showAlert(`<span class="text-success">Berhasil</span> membaca UID: ${data.uid}`, 'success');
+                    showAlert(<span class="text-success">Berhasil</span> membaca UID: ${data.uid}, 'success');
                 } else {
                     throw new Error('Data UID tidak valid');
                 }
             })
             .catch(error => {
                 console.error("Error:", error);
-                showAlert(`<span class="text-danger">Gagal</span> membaca UID. Cek koneksi atau server NFC.`, 'danger');
+                showAlert(<span class="text-danger">Gagal</span> membaca UID. Cek koneksi atau server NFC., 'danger');
                 // Fallback: Input manual
                 document.getElementById("uid").readOnly = false;
             });
@@ -611,7 +614,7 @@ $daftar_karyawan = $stmt->fetchAll();
             }
             
             const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} alert-nfc alert-dismissible fade show mt-2`;
+            alertDiv.className = alert alert-${type} alert-nfc alert-dismissible fade show mt-2;
             alertDiv.role = 'alert';
             alertDiv.innerHTML = `
                 ${message}
@@ -650,7 +653,7 @@ $daftar_karyawan = $stmt->fetchAll();
                 
                 // Tampilkan nama file yang dipilih
                 const fileNameDisplay = document.getElementById('file-name-display');
-                fileNameDisplay.textContent = `File terpilih: ${fileName}`;
+                fileNameDisplay.textContent = File terpilih: ${fileName};
                 fileNameDisplay.style.display = 'block';
                 
                 return true;

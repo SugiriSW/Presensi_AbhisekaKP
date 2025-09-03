@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 05, 2025 at 06:30 AM
+-- Generation Time: Sep 03, 2025 at 08:24 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `db_presensi_abhiseka`
+-- Database: `db_presensi_abhiseka_rev1`
 --
 
 -- --------------------------------------------------------
@@ -209,7 +209,8 @@ INSERT INTO `log_aktivitas` (`id_aktivitas`, `id_user`, `aktivitas`, `detail`, `
 (57, 'JR00002', 'Logout dari sistem', NULL, '2025-07-24 03:52:48'),
 (58, 'JR00002', 'Logout dari sistem', NULL, '2025-07-24 05:47:20'),
 (59, 'FR00001', 'Logout dari sistem', NULL, '2025-07-29 02:39:02'),
-(60, 'DR00001', 'Logout dari sistem', NULL, '2025-07-31 05:43:38');
+(60, 'DR00001', 'Logout dari sistem', NULL, '2025-07-31 05:43:38'),
+(61, 'DR00001', 'Logout dari sistem', NULL, '2025-09-03 04:47:13');
 
 -- --------------------------------------------------------
 
@@ -224,7 +225,7 @@ CREATE TABLE `pengguna` (
   `nama_lengkap` varchar(60) NOT NULL,
   `email` varchar(50) NOT NULL,
   `peran` enum('superadmin','admin','karyawan') NOT NULL DEFAULT 'karyawan',
-  `uid` varchar(15) DEFAULT NULL,
+  `uid` varchar(255) DEFAULT NULL,
   `foto_path` varchar(255) DEFAULT NULL,
   `data_wajah` text DEFAULT NULL COMMENT 'Data wajah untuk face recognition',
   `dibuat_pada` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -240,7 +241,7 @@ CREATE TABLE `pengguna` (
 INSERT INTO `pengguna` (`id_user`, `username`, `password`, `nama_lengkap`, `email`, `peran`, `uid`, `foto_path`, `data_wajah`, `dibuat_pada`, `diperbarui_pada`, `status`, `verif`) VALUES
 ('BE00001', 'Kasmal Ras', '$2y$10$ogqH5n6gggNvhvI2FtdXiO8xXhtUQyzYJ6kZUvecs1UHDXXE6RJvW', 'Kasmal Rasis', 'Kas@gmail.com', 'karyawan', NULL, 'uploads/foto_profil/profile_687f0e47cf26d1.35721437.jpg', NULL, '2025-07-22 04:06:31', '2025-07-29 02:38:43', 'aktif', 2580),
 ('DR00001', 'Suge', '$2y$10$jD1dTC1dENOrkHNgxXnF/eQHs/oC/gqkNQHiEkSFMRXsGygkwPANW', 'Sugiri Satrio Wicaksono', 'sugirisatriowi@gmail.com', 'superadmin', NULL, 'uploads/foto_profil/profile_687dee4fa35bf0.72987060.jpg', NULL, '2025-07-21 07:37:51', '2025-07-21 07:37:51', 'aktif', 0),
-('FR00001', 'SugiriS', '$2y$10$ZY/RXuxOayd.jG53ngmCL.xGpDeAGyx4QE8r3rgzwjosYh3YYLybG', 'Sugiri Satrio Wicaksono', 'Sugey@gmail.com', 'karyawan', NULL, '../uploads/profiles/profile_FR00001_687deed171df3.jpg', NULL, '2025-07-21 07:23:53', '2025-07-21 07:40:01', 'aktif', 0),
+('FR00001', 'SugiriS', '$2y$10$ZY/RXuxOayd.jG53ngmCL.xGpDeAGyx4QE8r3rgzwjosYh3YYLybG', 'Sugiri Satrio Wicaksono', 'Sugey@gmail.com', 'karyawan', '450AD905', '../uploads/profiles/profile_FR00001_687deed171df3.jpg', NULL, '2025-07-21 07:23:53', '2025-09-01 04:37:04', 'aktif', 0),
 ('JR00002', 'Wika', '$2y$10$nCTsF62vCxWPtslJKrlj4uyfs6xh4Ph9lEuaZGr.FoNdbiADr84gi', 'Wika Aditya', 'Sugiriakun11@gmail.com', 'admin', NULL, '../uploads/profiles/profile_JR00002_687dee0aa73be.png', NULL, '2025-07-21 07:35:53', '2025-07-21 07:36:42', 'aktif', 0);
 
 -- --------------------------------------------------------
@@ -250,21 +251,21 @@ INSERT INTO `pengguna` (`id_user`, `username`, `password`, `nama_lengkap`, `emai
 --
 
 CREATE TABLE `presensi` (
-  `id_presensi` varchar(20) NOT NULL,
+  `id_presensi` int(11) NOT NULL,
   `id_user` varchar(20) NOT NULL,
+  `uid` varchar(255) NOT NULL,
   `tanggal_presensi` date NOT NULL,
   `jam_masuk` time DEFAULT NULL,
   `jam_pulang` time DEFAULT NULL,
-  `status` enum('hadir','terlambat','izin','cuti','libur') NOT NULL
+  `status_kehadiran` enum('Hadir','Terlambat','Cuti','Sakit','Tidak Hadir','Libur','Izin') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `presensi`
 --
 
-INSERT INTO `presensi` (`id_presensi`, `id_user`, `tanggal_presensi`, `jam_masuk`, `jam_pulang`, `status`) VALUES
-('22072500001', 'FR00001', '2025-07-22', '07:39:07', '17:39:07', 'hadir'),
-('22072500002', 'DR00001', '2025-07-22', '07:00:07', '20:39:07', 'hadir');
+INSERT INTO `presensi` (`id_presensi`, `id_user`, `uid`, `tanggal_presensi`, `jam_masuk`, `jam_pulang`, `status_kehadiran`) VALUES
+(1, 'FR00001', '450AD905', '2025-09-01', '15:35:33', NULL, 'Terlambat');
 
 --
 -- Indexes for dumped tables
@@ -314,14 +315,16 @@ ALTER TABLE `pengguna`
   ADD PRIMARY KEY (`id_user`),
   ADD UNIQUE KEY `username` (`username`),
   ADD UNIQUE KEY `email` (`email`),
-  ADD UNIQUE KEY `uid` (`uid`);
+  ADD UNIQUE KEY `uid` (`uid`),
+  ADD UNIQUE KEY `uid_2` (`uid`);
 
 --
 -- Indexes for table `presensi`
 --
 ALTER TABLE `presensi`
   ADD PRIMARY KEY (`id_presensi`),
-  ADD KEY `id_user` (`id_user`);
+  ADD KEY `idx_id_user` (`id_user`),
+  ADD KEY `fk_presensi_pengguna_uid` (`uid`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -349,7 +352,13 @@ ALTER TABLE `izin`
 -- AUTO_INCREMENT for table `log_aktivitas`
 --
 ALTER TABLE `log_aktivitas`
-  MODIFY `id_aktivitas` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `id_aktivitas` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
+
+--
+-- AUTO_INCREMENT for table `presensi`
+--
+ALTER TABLE `presensi`
+  MODIFY `id_presensi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
@@ -382,16 +391,10 @@ ALTER TABLE `izin`
   ADD CONSTRAINT `izin_ibfk_2` FOREIGN KEY (`disetujui_oleh`) REFERENCES `pengguna` (`id_user`);
 
 --
--- Constraints for table `log_aktivitas`
---
-ALTER TABLE `log_aktivitas`
-  ADD CONSTRAINT `log_aktivitas_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `pengguna` (`id_user`);
-
---
 -- Constraints for table `presensi`
 --
 ALTER TABLE `presensi`
-  ADD CONSTRAINT `presensi_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `pengguna` (`id_user`);
+  ADD CONSTRAINT `fk_presensi_pengguna_uid` FOREIGN KEY (`uid`) REFERENCES `pengguna` (`uid`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
